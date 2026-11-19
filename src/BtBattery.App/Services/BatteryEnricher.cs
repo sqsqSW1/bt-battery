@@ -8,7 +8,8 @@ namespace BtBattery.App;
 
 /// <summary>
 /// 设备属性没有百分比时的后两层。Windows 电池接口按地址或容器对上；
-/// GATT 0x180F 只对仍然未知的配件读一次，读完就释放，避免占着连接。
+/// GATT 0x180F 只补仍然未知的配件，读完就释放。哪几台现场读由 <see cref="GattRefreshPlan"/> 安排：
+/// 缓存命中不占名额，需要新读的按没读过优先、其次最久没读来轮换，每轮最多四台。
 /// </summary>
 internal sealed class BatteryEnricher
 {
@@ -60,26 +61,32 @@ internal sealed class BatteryEnricher
         List<DeviceObservation> observations,
         CancellationToken cancellationToken)
     {
-        var pending = devices
-            .Where(device => device.IsConnected && DeviceKindLabels.IsAccessory(device.Kind) && !device.Battery.IsKnown)
-            .Take(4)
-            .ToList();
+        var lastRead = new Dictionary<string, DateTimeOffset>(StringComparer.OrdinalIgnoreCase);
+        foreach (var pair in _gattCache)
+            lastRead[pair.Key] = pair.Value.At;
 
-        foreach (var device in pending)
+        var plan = GattRefreshPlan.Select(devices, lastRead, DateTimeOffset.UtcNow, _gattBlocked);
+        foreach (var choice in plan)
         {
+            if (choice.Action != GattRefreshAction.UseCache)
+                continue;
+
             cancellationToken.ThrowIfCancellationRequested();
-            if (_gattCache.TryGetValue(device.Address, out var cached)
-                && (_gattBlocked || DateTimeOffset.UtcNow - cached.At < TimeSpan.FromMinutes(10)))
-            {
+            if (_gattCache.TryGetValue(choice.Address, out var cached))
                 observations.Add(cached.Observation);
-                continue;
-            }
+        }
 
-            if (_gattBlocked)
+        if (_gattBlocked)
+            return;
+
+        foreach (var choice in plan)
+        {
+            if (choice.Action != GattRefreshAction.ReadLive)
                 continue;
 
-            var observation = await ReadGattAsync(device.Address, cancellationToken).ConfigureAwait(false);
-            _gattCache[device.Address] = new GattCacheEntry(DateTimeOffset.UtcNow, observation);
+            cancellationToken.ThrowIfCancellationRequested();
+            var observation = await ReadGattAsync(choice.Address, cancellationToken).ConfigureAwait(false);
+            _gattCache[choice.Address] = new GattCacheEntry(DateTimeOffset.UtcNow, observation);
             observations.Add(observation);
             if (observation.Note?.Contains("拒绝访问", StringComparison.Ordinal) == true)
             {
