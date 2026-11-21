@@ -159,7 +159,7 @@ internal static class IconFactory
         if (percent is not int value || value <= 0)
             return;
 
-        var fillHeight = inner.Height * Math.Clamp(value, 0, 100) / 100f;
+        var fillHeight = inner.Height * Math.Min(value, 100) / 100f;
         if (fillHeight < 0.45f)
             return;
 

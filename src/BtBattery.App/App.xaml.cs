@@ -16,6 +16,7 @@ public partial class App : Application
             args.Handled = true;
         };
 
+#if !NETFRAMEWORK
         try
         {
             System.Windows.Forms.Application.SetHighDpiMode(System.Windows.Forms.HighDpiMode.PerMonitorV2);
@@ -24,6 +25,7 @@ public partial class App : Application
         {
             // DPI 模式已经由程序清单设置过。
         }
+#endif
 
         var context = SynchronizationContext.Current ?? new DispatcherSynchronizationContext(Dispatcher);
         SynchronizationContext.SetSynchronizationContext(context);

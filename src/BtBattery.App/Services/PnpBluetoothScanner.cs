@@ -134,7 +134,7 @@ internal static class PnpBluetoothScanner
         if (status != NativeMethods.CR_SUCCESS)
             return Array.Empty<string>();
 
-        return new string(buffer).Split('\0', StringSplitOptions.RemoveEmptyEntries);
+        return new string(buffer).Split(new[] { '\0' }, StringSplitOptions.RemoveEmptyEntries);
     }
 
     private static string ShortId(string instanceId)

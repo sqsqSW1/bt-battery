@@ -41,14 +41,16 @@ internal static class DevNodeProperties
         if (value.Type == NativeMethods.DEVPROP_TYPE_STRING)
         {
             var single = AsString(value);
-            return string.IsNullOrWhiteSpace(single) ? Array.Empty<string>() : new[] { single };
+            return single is { Length: > 0 } ? new[] { single } : Array.Empty<string>();
         }
 
         if (value.Type != NativeMethods.DEVPROP_TYPE_STRING_LIST)
             return Array.Empty<string>();
 
-        return Encoding.Unicode.GetString(value.Data)
-            .Split('\0', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return Encoding.Unicode.GetString(value.Data).Split('\0')
+            .Select(item => item.Trim())
+            .Where(item => item.Length != 0)
+            .ToArray();
     }
 
     public static byte? AsByte(PropBlob? blob) =>

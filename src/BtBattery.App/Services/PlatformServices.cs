@@ -41,7 +41,9 @@ internal static class Autostart
             return;
         }
 
-        var path = Environment.ProcessPath;
+        using var process = System.Diagnostics.Process.GetCurrentProcess();
+        using var module = process.MainModule;
+        var path = module?.FileName;
         if (string.IsNullOrWhiteSpace(path))
             throw new InvalidOperationException("无法确定程序自己的路径，开机启动没有写入。");
 

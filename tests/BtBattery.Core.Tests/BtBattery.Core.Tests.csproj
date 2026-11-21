@@ -1,6 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net8.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net8.0;net48</TargetFrameworks>
+    <PlatformTarget Condition="'$(TargetFramework)' == 'net48'">x64</PlatformTarget>
     <RootNamespace>BtBattery.Core.Tests</RootNamespace>
     <IsPackable>false</IsPackable>
     <Nullable>enable</Nullable>
@@ -13,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\BtBattery.Core\BtBattery.Core.csproj" />
+    <ProjectReference Condition="'$(TargetFramework)' == 'net8.0'" Include="..\..\src\BtBattery.Core\BtBattery.Core.csproj" />
+    <ProjectReference Condition="'$(TargetFramework)' == 'net48'" Include="..\..\src\BtBattery.Compact\BtBattery.Compact.csproj" />
   </ItemGroup>
 </Project>

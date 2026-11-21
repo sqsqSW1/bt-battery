@@ -36,7 +36,7 @@ internal sealed class TrayApplication : IAppController
 
     public bool Start()
     {
-        if (!OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000))
+        if (Environment.OSVersion.Version < new Version(10, 0, 22000))
         {
             System.Windows.MessageBox.Show("蓝牙电量需要 Windows 11。", AppInfo.Name);
             return false;

@@ -44,10 +44,16 @@ public static class DeviceText
     public static string Badge(BatteryReading battery) =>
         battery.IsKnown ? battery.Percent!.Value.ToString() : "—";
 
-    public static string Tooltip(TrackedDevice device)
+    public static string Tooltip(TrackedDevice device) => Tooltip(device, 127);
+
+    public static string Tooltip(TrackedDevice device, int maxLength)
     {
-        var name = Truncate(device.Name, 60);
-        return $"{name}\n{device.KindLabel}\n{BatteryLine(device)}";
+        if (maxLength < 1)
+            throw new ArgumentOutOfRangeException(nameof(maxLength));
+
+        var details = $"\n{device.KindLabel}\n{BatteryLine(device)}";
+        var nameLength = Math.Min(60, Math.Max(1, maxLength - details.Length));
+        return Truncate(Truncate(device.Name, nameLength) + details, maxLength);
     }
 
     public static string AppTooltip(int shownDevices, bool demo)

@@ -18,7 +18,7 @@
 ## 需要什么
 
 - Windows 11（内部版本 22000 或更高），64 位。
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)。安装时带上「.NET 桌面开发」。只装运行时不够用来编译。
+- 自行编译时需要 [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)。直接运行已发布的轻量版只需系统自带的 .NET Framework 4.8 或更高版本。
 - 用 Visual Studio 2022 也可以：打开 `BtBattery.sln`，启动项目选 `BtBattery.App`，平台选 x64。
 
 蓝牙无线电要开着。程序只看本机已经配对并且当前连上的设备，不会去搜索周围的新设备。
@@ -40,11 +40,21 @@ dotnet run --project src\BtBattery.App\BtBattery.App.csproj -c Release -- --demo
 
 `--demo` 会放四个示例图标（鼠标 85%、键盘电量未知、耳机 42%、手柄 12%），不读取这台电脑的蓝牙。
 
-核心库不依赖 Windows，分类、电量换算和设置读写可以用上面的 `dotnet test` 在别的系统上跑。带窗口的项目用了 WPF，只能在 Windows 上编译。
+上面的 `dotnet test` 在 Windows 上会用同一组用例检查 .NET 8 核心库和轻量版 EXE。在其他系统上，它会检查跨平台的 .NET 8 核心库。带窗口的项目使用 WPF。
 
 ## 发布成一个 exe
 
-仓库里的 `publish.ps1` 会打一个 **win-x64、自带运行时的单文件** `蓝牙电量.exe`。体积会到一百多 MB，因为里面装着 .NET 和 WPF，换一台没有装运行时的电脑也能直接开。开机启动也更稳。
+### Windows 11 轻量版（小于 1 MB）
+
+```powershell
+.\publish.ps1 -Compact
+```
+
+程序位于 `artifacts\compact-win-x64\蓝牙电量.exe`。把这一个文件复制到 Windows 11 x64 电脑即可运行。它使用 Windows 内置的 .NET Framework 和蓝牙 API，复用同一套设备检测、托盘界面和设置代码。已有的 `settings.json` 可直接沿用。
+
+### 自带 .NET 8 运行时的版本
+
+直接运行 `publish.ps1` 会生成 **win-x64、自带运行时的单文件** `蓝牙电量.exe`。它把 .NET 8 和 WPF 一起打包，体积会到一百多 MB。
 
 ```powershell
 .\publish.ps1

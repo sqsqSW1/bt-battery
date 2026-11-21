@@ -49,10 +49,10 @@ public static class DeviceNames
 
     public static bool IsGeneric(string? name)
     {
-        if (string.IsNullOrWhiteSpace(name))
+        var trimmed = name?.Trim();
+        if (trimmed is null || trimmed.Length == 0)
             return true;
 
-        var trimmed = name.Trim();
         var lower = trimmed.ToLowerInvariant();
         if (ExactGeneric.Contains(lower, StringComparer.Ordinal))
             return true;

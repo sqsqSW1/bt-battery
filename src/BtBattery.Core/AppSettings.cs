@@ -41,10 +41,12 @@ public sealed class AppSettings
         _ => false,
     };
 
+    public static int NormalizePollInterval(int seconds) => Math.Min(300, Math.Max(15, seconds));
+
     public AppSettings Normalized()
     {
-        PollIntervalSeconds = Math.Clamp(PollIntervalSeconds, 15, 300);
-        if (!Enum.IsDefined(IconTheme))
+        PollIntervalSeconds = NormalizePollInterval(PollIntervalSeconds);
+        if (!Enum.IsDefined(typeof(IconThemePreference), IconTheme))
             IconTheme = IconThemePreference.FollowSystem;
         Version = 1;
         return this;
@@ -53,6 +55,7 @@ public sealed class AppSettings
 
 public static class SettingsFile
 {
+    private static readonly object ReplaceLock = new();
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,
@@ -88,9 +91,23 @@ public static class SettingsFile
             Directory.CreateDirectory(directory);
 
         var json = JsonSerializer.Serialize(settings, JsonOptions);
-        var temporary = path + ".tmp";
-        File.WriteAllText(temporary, json);
-        File.Move(temporary, path, overwrite: true);
+        var temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        try
+        {
+            File.WriteAllText(temporary, json);
+            lock (ReplaceLock)
+            {
+#if NETFRAMEWORK
+                WindowsFile.MoveReplacing(temporary, path);
+#else
+                File.Move(temporary, path, overwrite: true);
+#endif
+            }
+        }
+        finally
+        {
+            File.Delete(temporary);
+        }
     }
 
     private static void TryBackup(string path)

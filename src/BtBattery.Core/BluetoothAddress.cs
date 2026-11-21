@@ -5,10 +5,10 @@ public static class BluetoothAddress
 {
     public static string? Normalize(string? raw)
     {
-        if (string.IsNullOrWhiteSpace(raw))
+        if (raw is null)
             return null;
 
-        var hex = new char[12];
+        ulong address = 0;
         var count = 0;
         foreach (var ch in raw)
         {
@@ -16,26 +16,12 @@ public static class BluetoothAddress
             {
                 if (count >= 12)
                     return null;
-                hex[count++] = char.ToUpperInvariant(ch);
+                address = (address << 4) | HexValue(ch);
+                count++;
             }
         }
 
-        if (count != 12)
-            return null;
-
-        if (new string(hex) == "000000000000")
-            return null;
-
-        return string.Create(17, hex, static (span, digits) =>
-        {
-            for (var i = 0; i < 6; i++)
-            {
-                span[i * 3] = digits[i * 2];
-                span[i * 3 + 1] = digits[i * 2 + 1];
-                if (i < 5)
-                    span[i * 3 + 2] = ':';
-            }
-        });
+        return count == 12 ? Format(address) : null;
     }
 
     /// <summary>
@@ -47,16 +33,18 @@ public static class BluetoothAddress
         if (address == 0 || address > 0xFFFF_FFFF_FFFF)
             return null;
 
-        Span<char> digits = stackalloc char[12];
+        var digits = new char[17];
         for (var i = 0; i < 6; i++)
         {
             var shift = (5 - i) * 8;
             var b = (int)((address >> shift) & 0xFF);
-            digits[i * 2] = ToHex(b >> 4);
-            digits[i * 2 + 1] = ToHex(b & 0xF);
+            digits[i * 3] = ToHex(b >> 4);
+            digits[i * 3 + 1] = ToHex(b & 0xF);
+            if (i < 5)
+                digits[i * 3 + 2] = ':';
         }
 
-        return Normalize(new string(digits));
+        return new string(digits);
     }
 
     public static ulong? ToUInt64(string? normalized)
@@ -79,7 +67,7 @@ public static class BluetoothAddress
     /// <summary>从实例 ID 里抽出 Dev_AABBCCDDEEFF 这种地址。</summary>
     public static string? ExtractFromInstanceId(string? instanceId)
     {
-        if (string.IsNullOrWhiteSpace(instanceId))
+        if (instanceId is null)
             return null;
 
         var marker = instanceId.IndexOf("Dev_", StringComparison.OrdinalIgnoreCase);

@@ -65,7 +65,7 @@ internal sealed class BatteryEnricher
         // 未尝试过的设备排在最前，其余按上次尝试的时间从早到晚处理。
         var candidates = devices
             .Where(device => device.IsConnected && DeviceKindLabels.IsAccessory(device.Kind) && !device.Battery.IsKnown)
-            .OrderBy(device => _gattCache.GetValueOrDefault(device.Address)?.At);
+            .OrderBy(device => _gattCache.TryGetValue(device.Address, out var entry) ? entry.At : (DateTimeOffset?)null);
 
         var reads = 0;
         foreach (var device in candidates)

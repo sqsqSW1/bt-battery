@@ -9,6 +9,11 @@ namespace BtBattery.App;
 /// </summary>
 internal sealed class TrayIconManager : IDisposable
 {
+#if NETFRAMEWORK
+    private const int MaxTooltipLength = 63;
+#else
+    private const int MaxTooltipLength = 127;
+#endif
     private readonly NotifyIcon _appIcon;
     private readonly Dictionary<string, NotifyIcon> _devices = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Icon> _images = new(StringComparer.OrdinalIgnoreCase);
@@ -58,7 +63,7 @@ internal sealed class TrayIconManager : IDisposable
                 _images[device.Address] = image;
             }
 
-            icon.Text = Limit(DeviceText.Tooltip(device));
+            icon.Text = DeviceText.Tooltip(device, MaxTooltipLength);
             icon.Visible = true;
         }
     }
@@ -131,5 +136,5 @@ internal sealed class TrayIconManager : IDisposable
         previous?.Dispose();
     }
 
-    private static string Limit(string text) => text.Length <= 127 ? text : text[..127];
+    private static string Limit(string text) => text.Length <= MaxTooltipLength ? text : text[..MaxTooltipLength];
 }

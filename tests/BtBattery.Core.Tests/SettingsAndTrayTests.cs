@@ -44,6 +44,16 @@ public class SettingsAndTrayTests
     }
 
     [Fact]
+    public void Compact_tooltip_keeps_the_battery_reading_for_a_long_device_name()
+    {
+        var device = Device(new string('蓝', 100), DeviceKind.Headset, 42);
+        var text = DeviceText.Tooltip(device, 63);
+
+        Assert.Equal(63, text.Length);
+        Assert.EndsWith("…\n" + device.KindLabel + "\n42%", text);
+    }
+
+    [Fact]
     public void Settings_roundtrip_and_reject_a_broken_file()
     {
         var directory = Path.Combine(Path.GetTempPath(), "btbattery-tests-" + Guid.NewGuid().ToString("N"));
@@ -66,6 +76,10 @@ public class SettingsAndTrayTests
             Assert.Equal(15, loaded.PollIntervalSeconds);
             Assert.Equal(IconThemePreference.DarkGlyphs, loaded.IconTheme);
             Assert.False(loaded.ShowWhenBatteryUnknown);
+
+            loaded.PollIntervalSeconds = 120;
+            SettingsFile.Save(path, loaded);
+            Assert.Equal(120, SettingsFile.Load(path).PollIntervalSeconds);
 
             File.WriteAllText(path, "{ this is not json");
             var fallback = SettingsFile.Load(path);

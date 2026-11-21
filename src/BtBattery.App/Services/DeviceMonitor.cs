@@ -72,7 +72,7 @@ internal sealed class DeviceMonitor : IDisposable
                 Publish(new MonitorSnapshot(Array.Empty<TrackedDevice>(), "读取蓝牙设备时出错，详细原因写在日志里。"));
             }
 
-            var interval = TimeSpan.FromSeconds(Math.Clamp(_settings().PollIntervalSeconds, 15, 300));
+            var interval = TimeSpan.FromSeconds(AppSettings.NormalizePollInterval(_settings().PollIntervalSeconds));
             bool poked;
             try
             {
@@ -144,7 +144,7 @@ internal sealed class DeviceMonitor : IDisposable
         if (merged.Count == 0)
         {
             var radio = await WinRtBluetoothScanner.RadioWarningAsync(cancellationToken).ConfigureAwait(false);
-            if (!string.IsNullOrEmpty(radio))
+            if (radio is { Length: > 0 })
                 warnings.Insert(0, radio);
         }
 

@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <OutputType>WinExe</OutputType>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>蓝牙电量</AssemblyName>
+    <RootNamespace>BtBattery.App</RootNamespace>
+    <DebugType Condition="'$(Configuration)' == 'Release'">none</DebugType>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <ApplicationIcon>..\BtBattery.App\Assets\app.ico</ApplicationIcon>
+    <ApplicationManifest>..\BtBattery.App\app.manifest</ApplicationManifest>
+    <StartupObject>BtBattery.App.CompactStartup</StartupObject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\BtBattery.Core\**\*.cs"
+             Exclude="..\BtBattery.Core\bin\**;..\BtBattery.Core\obj\**"
+             Link="Core\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\BtBattery.App\**\*.cs"
+             Exclude="..\BtBattery.App\bin\**;..\BtBattery.App\obj\**"
+             Link="%(RecursiveDir)%(Filename)%(Extension)" />
+    <ApplicationDefinition Include="..\BtBattery.App\App.xaml" Link="App.xaml" />
+    <Page Include="..\BtBattery.App\**\*.xaml"
+          Exclude="..\BtBattery.App\App.xaml;..\BtBattery.App\bin\**;..\BtBattery.App\obj\**"
+          Link="%(RecursiveDir)%(Filename)%(Extension)" />
+    <Reference Include="System.Runtime.WindowsRuntime" />
+    <PackageReference Include="Microsoft.Windows.SDK.Contracts" Version="10.0.22621.2428" />
+    <PackageReference Include="System.Text.Json" Version="8.0.6" GeneratePathProperty="true" />
+    <PackageReference Include="PolySharp" Version="1.17.1" PrivateAssets="all" />
+    <PackageReference Include="Fody" Version="6.9.3" PrivateAssets="all" />
+    <PackageReference Include="Costura.Fody" Version="6.2.0" PrivateAssets="all" />
+    <EmbeddedResource Include="$(PkgSystem_Text_Json)\LICENSE.TXT" LogicalName="Licenses.dotnet.txt" />
+    <EmbeddedResource Include="$(PkgSystem_Text_Json)\THIRD-PARTY-NOTICES.TXT" LogicalName="Licenses.dotnet-notices.txt" />
+    <EmbeddedResource Include="ThirdPartyLicenses.txt" LogicalName="Licenses.build-tools.txt" />
+  </ItemGroup>
+</Project>

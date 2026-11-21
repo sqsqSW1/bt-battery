@@ -209,7 +209,7 @@ public static class DeviceClassifier
         string? pnpClass,
         IReadOnlyList<string>? compatibleIds)
     {
-        var joined = string.Join('\n', compatibleIds ?? Array.Empty<string>());
+        var joined = string.Join("\n", compatibleIds ?? Array.Empty<string>());
         var blob = (pnpClass + "\n" + joined).ToUpperInvariant();
 
         if (blob.Contains("HID_DEVICE_SYSTEM_MOUSE", StringComparison.Ordinal) || pnpClassEquals(pnpClass, "Mouse"))
@@ -252,10 +252,10 @@ public static class DeviceClassifier
 
     private static void AddName(List<ClassificationResult> candidates, string? name)
     {
-        if (string.IsNullOrWhiteSpace(name))
+        var lower = name?.Trim().ToLowerInvariant();
+        if (lower is null || lower.Length == 0)
             return;
 
-        var lower = name.Trim().ToLowerInvariant();
         var compact = Compact(lower);
 
         var mouse = Score(lower, compact, "鼠标", "mouse", "mxmaster", "mxanywhere", "mxergo", "magicmouse");
@@ -332,7 +332,7 @@ public static class DeviceClassifier
 
     private static string Compact(string lower)
     {
-        Span<char> buffer = stackalloc char[lower.Length];
+        var buffer = new char[lower.Length];
         var count = 0;
         foreach (var ch in lower)
         {
@@ -340,7 +340,7 @@ public static class DeviceClassifier
                 buffer[count++] = ch;
         }
 
-        return new string(buffer[..count]);
+        return new string(buffer, 0, count);
     }
 
     private static bool pnpClassEquals(string? pnpClass, string expected) =>
